@@ -19,8 +19,6 @@ int main(int argc, char** argv)
 	// Currently, it ONLY recognizes the word it's trying to find.
 	// TODO: Find way to listen for multiple words.
     start_listening("Next");
-	start_listening("Repeat");
-	start_listening("Restart");
     return EXIT_SUCCESS;
 }
 
@@ -114,10 +112,18 @@ ISpRecoGrammar* init_grammar(ISpRecoContext* recoContext, const std::string& com
     hr = recoGrammar->GetRule(ruleName1, 0, SPRAF_TopLevel | SPRAF_Active, true, &sate);
     check_result(hr);
 
-    // Add a word
+    // Add all 3 words.
     const std::wstring commandWstr = std::wstring(command.begin(), command.end());
-    hr = recoGrammar->AddWordTransition(sate, NULL, commandWstr.c_str(), L" ", SPWT_LEXICAL, 1, nullptr);
+    hr = recoGrammar->AddWordTransition(sate, NULL, L"Next", L" ", SPWT_LEXICAL, 1, NULL);
     check_result(hr);
+
+	hr = recoGrammar->AddWordTransition(sate, NULL, L"Restart", L" ", SPWT_LEXICAL, 1, NULL);
+    check_result(hr);
+
+	hr = recoGrammar->AddWordTransition(sate, NULL, L"Repeat", L" ", SPWT_LEXICAL, 1, NULL);
+    check_result(hr);
+
+
 
     // Commit changes
     hr = recoGrammar->Commit(0);
