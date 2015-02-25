@@ -15,10 +15,10 @@ void check_result(const HRESULT& result);
 // From: http://stackoverflow.com/questions/16547349/sapi-speech-to-text-example
 int main(int argc, char** argv)
 {
-	// Find this word during runtime. (Could be done via multithreading)
-	// Currently, it ONLY recognizes the word it's trying to find.
-	// TODO: Find way to listen for multiple words.
-    start_listening("Next");
+	// Find words during runtime. (Could be done via multithreading)
+	while(true) {
+		start_listening("Next");
+	}
     return EXIT_SUCCESS;
 }
 
@@ -30,8 +30,8 @@ int start_listening(const std::string& word)
         return EXIT_FAILURE;
     }
 
-    std::cout << "You should start Windows Recognition" << std::endl;
-    std::cout << "Just say \""<< word << "\"" << std::endl;
+    std::cout << "=== SAPI Example Implementation for Capstone Project ===" << std::endl;
+    std::cout << "Just say either Next, Repeat, or Restart" << std::endl;
 
     HRESULT hr;
 
@@ -106,7 +106,7 @@ ISpRecoGrammar* init_grammar(ISpRecoContext* recoContext, const std::string& com
     WORD langId = MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US);
     hr = recoGrammar->ResetGrammar(langId);
     check_result(hr);
-    // TODO: Catch error and use default langId => GetUserDefaultUILanguage()
+    //// TODO: Catch error and use default langId => GetUserDefaultUILanguage()
 
     // Create rules
     hr = recoGrammar->GetRule(ruleName1, 0, SPRAF_TopLevel | SPRAF_Active, true, &sate);
@@ -122,8 +122,6 @@ ISpRecoGrammar* init_grammar(ISpRecoContext* recoContext, const std::string& com
 
 	hr = recoGrammar->AddWordTransition(sate, NULL, L"Repeat", L" ", SPWT_LEXICAL, 1, NULL);
     check_result(hr);
-
-
 
     // Commit changes
     hr = recoGrammar->Commit(0);
@@ -150,9 +148,24 @@ void get_text(ISpRecoContext* reco_context)
     ISpRecoResult* recoResult;
     recoResult = reinterpret_cast<ISpRecoResult*>(events[0].lParam);
 
+	// Parsing voice input, returning the word stored in the grammar.
+	size_t i;
     wchar_t* text;
+	char* charText = (char *)malloc(64);
     hr = recoResult->GetText(SP_GETWHOLEPHRASE, SP_GETWHOLEPHRASE, FALSE, &text, NULL);
     check_result(hr);
+
+	wcstombs_s(&i, charText, (size_t)64, text, (size_t)64);
+
+	if (strcmp(charText, "Next") == 0) {
+		std::cout << "Going to next step..." << std::endl;
+	} else if (strcmp(charText, "Repeat") == 0) {
+		std::cout << "Repeating the step..." << std::endl;
+	} else if (strcmp(charText, "Restart") == 0) {
+		std::cout << "Restarting the assembly..." << std::endl;
+	} else {
+		std::cout << "Unknown command." << std::endl;
+	}
 
     CoTaskMemFree(text);
 }
